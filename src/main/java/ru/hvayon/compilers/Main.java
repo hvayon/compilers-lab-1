@@ -16,25 +16,6 @@ public class Main {
 
         GraphCreator graphCreator = new GraphCreator();
 
-        graphCreator.CreateOneSymbolStateMachine('a');
-
-//        Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-//
-//        //graph.addEdge("a", "b");
-//        graph.addVertex("a");
-//        graph.addVertex("b");
-//        graph.addVertex("+");
-//
-//
-//        JGraphXAdapter<String, DefaultEdge> jGraphXAdapter = new JGraphXAdapter<>(graph);
-//
-//        mxIGraphLayout mxIGraphLayout = new mxCircleLayout(jGraphXAdapter);
-//        mxIGraphLayout.execute(jGraphXAdapter.getDefaultParent());
-//
-//        BufferedImage bufferedImage =
-//                mxCellRenderer.createBufferedImage(jGraphXAdapter, null, 3, Color.WHITE, true, null);
-//
-//        File newFIle = new File("graph.png");
-//        ImageIO.write(bufferedImage, "PNG", newFIle);
+        graphCreator.createGraph(RPN.postfixExpr);
         }
     }

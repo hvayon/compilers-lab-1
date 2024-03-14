@@ -1,4 +1,5 @@
 package ru.hvayon.compilers.RPN;
+
 public class Operator {
     private Character name;
     private Integer priority;

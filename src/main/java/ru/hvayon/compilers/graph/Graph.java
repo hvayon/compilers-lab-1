@@ -18,15 +18,13 @@ class Graph {
     ArrayList<ArrayList<Integer>> mGraph;
     ArrayList<ArrayList<Character>> mRules;
 
-    ArrayList<Integer> mUnfinishedVertexes;
+    ArrayList<ArrayList<Integer>> mUnfinishedVertexes;
 
     HashMap<Character,Graph> graphOperators;
 
     Graph (int arg_nodes) {
         nodes = arg_nodes;
-//        adjlist = new ArrayList<>(nodes);
-//        for (int i=0; i<nodes; i++)
-//            adjlist.add(new ArrayList<>());
+
         mGraph = new ArrayList<>(nodes);
         for (int i=0; i<nodes; i++)
             mGraph.add(new ArrayList<>());
@@ -40,7 +38,7 @@ class Graph {
     Graph() {
         mGraph = new ArrayList<>();
         mRules = new ArrayList<>();
-        mUnfinishedVertexes = new ArrayList<Integer>();
+        mUnfinishedVertexes = new ArrayList<>();
     }
 
 
@@ -91,10 +89,12 @@ class Graph {
             bw.write("digraph G {\n");
             for (int i = 0; i < mGraph.size(); i++) {
                 for (int j = 0; j < mGraph.get(i).size(); j++) {
-                    System.out.print(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n}\n");
-                    bw.write(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n}\n");
+                    System.out.print(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n");
+                    bw.write(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n");
                 }
             }
+            System.out.println("}");
+            bw.write("}\n");
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
