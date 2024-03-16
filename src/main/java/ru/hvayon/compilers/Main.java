@@ -7,9 +7,11 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String expression = "(a|b)*.(c|d)+";
+        //String expression = "(a|b)*.(c|d)+";
 
-        RPN RPN = new RPN(expression);
+        String exp = "a+";
+
+        RPN RPN = new RPN(exp);
 
         System.out.println("Ввод: " + RPN.infixExpr);
         System.out.println(("Постфиксная форма: " + RPN.postfixExpr));

@@ -10,9 +10,10 @@ class Graph {
 
     int nodes;
 
-    int beginVertex;
+    int mBeginVertex;
 
-    int endVertex;
+    int mEndVertex;
+
     List<List<Integer>> adjlist;
 
     ArrayList<ArrayList<Integer>> mGraph;
@@ -41,6 +42,31 @@ class Graph {
         mUnfinishedVertexes = new ArrayList<>();
     }
 
+    public Graph insertGraph(Graph rhs) {
+        assert(mUnfinishedVertexes.size() >= 1);
+        assert(rhs.mUnfinishedVertexes.size() == 0);
+
+        int vertexesCount = mGraph.size();
+        rhs.mBeginVertex += vertexesCount;
+        rhs.mEndVertex += vertexesCount;
+        for (List<Integer> list : rhs.mGraph) {
+            for (int i = 0; i < list.size(); i++) {
+                list.set(i, list.get(i) + vertexesCount);
+            }
+        }
+
+        mGraph.addAll(rhs.mGraph);
+        mRules.addAll(rhs.mRules);
+
+        mGraph.get(mUnfinishedVertexes.get(list.size() - 1)).add(rhs.mBeginVertex);
+        mRules.get(mUnfinishedVertexes.lastKey()).add('\0');
+        mGraph.get(rhs.mEndVertex).add(mUnfinishedVertexes.lastEntry().getValue());
+        mRules.get(rhs.mEndVertex).add('\0');
+
+        mUnfinishedVertexes.remove(mUnfinishedVertexes.lastKey());
+
+        return this;
+    }
 
 //    void CreateGraphOperators(List<List<Integer>> adjlist) {
 //        graphOperators = new HashMap<>();
