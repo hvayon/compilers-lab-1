@@ -8,7 +8,7 @@ public class RPN {
     public String infixExpr;
     /* хранит постфиксное выражение */
     public String postfixExpr;
-    /* cписок и приоритет операторов */
+    /* список и приоритет операторов */
     ArrayList<Operator> operators = new ArrayList<>();
 
     public void addToArrayList() {
@@ -29,11 +29,10 @@ public class RPN {
         return false;
     }
 
-    // Возвращает приоритет оператора
+    /* Возвращает приоритет оператора */
     public int checkPriority(Character opr) {
         for (Operator op : operators) {
             if (op.getName().equals(opr)) {
-                //System.out.println("Символ содержится в операции.");
                 return op.getPriority();
             }
         }
@@ -41,9 +40,8 @@ public class RPN {
         return -1;
     }
 
-    //	Конструктор класса
+    /*	Конструктор класса */
     public RPN(String expression) {
-        //	Инициализируем поля
         infixExpr = expression;
         postfixExpr = ToPostfix(infixExpr);
     }
@@ -92,30 +90,30 @@ public class RPN {
                 stack.push(c);
             }
             else if (c == ')') {
-                // Заносим в выходную строку из стека всё вплоть до открывающей скобки
+                /* Заносим в выходную строку из стека всё вплоть до открывающей скобки */
                 while (stack.size() > 0 && stack.peek() != '(')
                     postfixExpr += stack.pop();
-                // Удаляем открывающуюся скобку из стека
+                /* Удаляем открывающуюся скобку из стека */
                 stack.pop();
             }
-            // Проверяем, содержится ли символ в списке операторов
+            /* Проверяем, содержится ли символ в списке операторов */
             else if (checkIfOperandExist(c)) {
 
                 Character op = c;
 
-                // Заносим в выходную строку все операторы из стека, имеющие более высокий приоритет
+                /* Заносим в выходную строку все операторы из стека, имеющие более высокий приоритет */
                 while (stack.size() > 0 && ( checkPriority(stack.peek()) > checkPriority(op))) {
                     postfixExpr += stack.pop();
                 }
-                // Заносим в стек оператор
+                /* Заносим в стек оператор */
                 stack.push(op);
             }
      }
-//        // Заносим все оставшиеся операторы из стека в выходную строку
+        /* Заносим все оставшиеся операторы из стека в выходную строку */
         while (stack.size() > 0) {
             postfixExpr += stack.pop();
         }
-            // Возвращаем выражение в постфиксной записи
+            /* Возвращаем выражение в постфиксной записи */
         	return postfixExpr;
     }
 }

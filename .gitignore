@@ -1,3 +1,5 @@
+src/main/resources/graph.png
+src/main/resources/graph.dot
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

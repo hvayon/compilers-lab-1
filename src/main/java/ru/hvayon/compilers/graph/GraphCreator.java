@@ -1,76 +1,41 @@
 package ru.hvayon.compilers.graph;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Stack;
-import java.util.function.Function;
 
 public class GraphCreator {
 
-    public void createGraph(String polishRegex) {
-
-        Map<Character, Function<Graph, Graph>> twoOperandCreators = Map.of(
-                '|', GraphCreator::createUnionGraph,
-                '.', GraphCreator::CreateConcatGraph
-        );
-
-        Map<Character, Function<Graph, Graph>> oneOperandCreators = Map.of(
-                '*', GraphCreator::CreateIterationGraph,
-                '+', GraphCreator::CreatePositiveIterationGraph
-        );
-
-        //Map<Character, Graph> map = new HashMap<>();
-
-        //map.put('+', this.CreateIterationGraph());
+    public Graph createGraph(String polishRegex) {
 
         Stack<Graph> stack = new Stack<>();
 
         for (int i = 0; i < polishRegex.length(); i++) {
             Character elem = polishRegex.charAt(i);
-            switch (elem) {
-                case ('+'):
-                    //System.out.println(stack);
-                    Graph gr1 = stack.pop();
-                    //Graph gr2 = stack.pop();
-                    stack.push(oneOperandCreators.get(elem).apply(gr1));
-                    //stack.push(twoOperandCreators.get(elem).apply(gr2));
-                    System.out.println(stack);
-                    break;
-                case ('*'):
-                    Graph gr2 = stack.pop();
-                    //Graph gr = new Graph();
-                    stack.push(oneOperandCreators.get(elem).apply(gr2));
-                    //CreateIterationGraph();
-                    System.out.println(stack);
-                    //System.out.println('*');
-                    break;
-                case ('|'):
-                    Graph gr3 = stack.pop();
-                    Graph gr5 = stack.pop();
-                    stack.push(oneOperandCreators.get(elem).apply(gr3));
-                    stack.push(twoOperandCreators.get(elem).apply(gr5));
-                    System.out.println(stack);
-                    //System.out.println('|');
-                    break;
-                case ('.'):
-                    Graph gr4 = stack.pop();
-                    Graph gr6 = stack.pop();
-                    stack.push(oneOperandCreators.get(elem).apply(gr4));
-                    stack.push(twoOperandCreators.get(elem).apply(gr6));
-                    System.out.println(stack);
-                    //CreateConcatGraph();
-                    //System.out.println('.');
-                    break;
-                default:
-                    stack.push(CreateOneSymbolGraph(elem));
-                    System.out.println("CreateOneSymbolGraph =" + stack);
-                    //System.out.println("default");
-
+            if (elem.equals('+')) {
+                Graph gr1 = stack.pop();
+                stack.push(createPositiveIterationGraph(gr1));
+            } else if (elem.equals('*')) {
+                Graph gr2 = stack.pop();
+                stack.push(createIterationGraph(gr2));
+            } else if (elem.equals('|')) {
+                Graph gr3 = stack.pop();
+                Graph gr4 = stack.pop();
+                stack.push(createUnionGraph(gr3, gr4));
+            } else if (elem.equals('.')) {
+                Graph gr5 = stack.pop();
+                Graph gr6 = stack.pop();
+                stack.push(createConcatGraph(gr5, gr6));
+            } else {
+                stack.push(createOneSymbolGraph(elem));
             }
-        }
+      }
+        assert(stack.size() == 1);
+        Graph res = stack.pop();
+
+        return res;
     }
 
-    public Graph CreateIterationGraphTemplate() {
+    public Graph сreateIterationGraphTemplate() {
         Graph res = new Graph();
 
         res.mGraph.add(0, new ArrayList<>());
@@ -98,11 +63,10 @@ public class GraphCreator {
         res.mBeginVertex = 0;
         res.mEndVertex = 3;
 
-        res.toDot();
         return res;
     }
 
-    public Graph CreatePositiveIterationGraphTemplate() {
+    public Graph createPositiveIterationGraphTemplate() {
         Graph res = new Graph();
 
         res.mGraph.add(0, new ArrayList<>());
@@ -154,7 +118,7 @@ public class GraphCreator {
         res.mRules.add(3, new ArrayList<>());
         res.mRules.add(4, new ArrayList<>());
         res.mRules.get(4).add('E');
-        res.mGraph.add(5, new ArrayList<>());
+        res.mRules.add(5, new ArrayList<>());
 
         res.mUnfinishedVertexes.add(0, new ArrayList<>());
         res.mUnfinishedVertexes.get(0).add(1);
@@ -163,10 +127,13 @@ public class GraphCreator {
         res.mUnfinishedVertexes.get(1).add(3);
         res.mUnfinishedVertexes.get(1).add(4);
 
+        res.mBeginVertex = 0;
+        res.mEndVertex = 5;
+
         return res;
     }
 
-    public Graph CreateConcatGraphTemplate() {
+    public Graph createConcatGraphTemplate() {
 
         Graph res = new Graph();
 
@@ -191,7 +158,7 @@ public class GraphCreator {
         return res;
     }
 
-    public Graph CreateOneSymbolGraph(char symbol) {
+    public Graph createOneSymbolGraph(char symbol) {
 
         Graph res = new Graph();
 
@@ -209,7 +176,19 @@ public class GraphCreator {
         return res;
     }
 
-    public Graph CreateUnionStateMachine(Graph lhs, Graph rhs) {
-        return createUnionGraphTemplate();
+    public Graph createIterationGraph(Graph gr) {
+        return сreateIterationGraphTemplate().insertGraph(gr);
+    }
+
+    public Graph createPositiveIterationGraph(Graph gr) {
+        return createPositiveIterationGraphTemplate().insertGraph(gr);
+    }
+
+    public Graph createConcatGraph(Graph lhs, Graph rhs){
+        return createConcatGraphTemplate().insertGraph(lhs).insertGraph(rhs);
+    }
+
+    public Graph createUnionGraph(Graph lhs, Graph rhs) {
+        return createUnionGraphTemplate().insertGraph(lhs).insertGraph(rhs);
     }
 }

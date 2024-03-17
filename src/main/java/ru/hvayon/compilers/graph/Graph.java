@@ -6,13 +6,79 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-class Graph {
+public class Graph {
 
     int nodes;
 
+    /* индекс начальной вершины */
     int mBeginVertex;
 
+    /* индекс конечной вершины */
     int mEndVertex;
+
+    public void setNodes(int nodes) {
+        this.nodes = nodes;
+    }
+
+    public void setmBeginVertex(int mBeginVertex) {
+        this.mBeginVertex = mBeginVertex;
+    }
+
+    public void setmEndVertex(int mEndVertex) {
+        this.mEndVertex = mEndVertex;
+    }
+
+    public void setAdjlist(List<List<Integer>> adjlist) {
+        this.adjlist = adjlist;
+    }
+
+    public void setmGraph(ArrayList<ArrayList<Integer>> mGraph) {
+        this.mGraph = mGraph;
+    }
+
+    public void setmRules(ArrayList<ArrayList<Character>> mRules) {
+        this.mRules = mRules;
+    }
+
+    public void setmUnfinishedVertexes(ArrayList<ArrayList<Integer>> mUnfinishedVertexes) {
+        this.mUnfinishedVertexes = mUnfinishedVertexes;
+    }
+
+    public void setGraphOperators(HashMap<Character, Graph> graphOperators) {
+        this.graphOperators = graphOperators;
+    }
+
+    public int getNodes() {
+        return nodes;
+    }
+
+    public int getmBeginVertex() {
+        return mBeginVertex;
+    }
+
+    public int getmEndVertex() {
+        return mEndVertex;
+    }
+
+    public List<List<Integer>> getAdjlist() {
+        return adjlist;
+    }
+
+    public ArrayList<ArrayList<Integer>> getmGraph() {
+        return mGraph;
+    }
+
+    public ArrayList<ArrayList<Character>> getmRules() {
+        return mRules;
+    }
+
+    public ArrayList<ArrayList<Integer>> getmUnfinishedVertexes() {
+        return mUnfinishedVertexes;
+    }
+
+    public HashMap<Character, Graph> getGraphOperators() {
+        return graphOperators;
+    }
 
     List<List<Integer>> adjlist;
 
@@ -23,20 +89,7 @@ class Graph {
 
     HashMap<Character,Graph> graphOperators;
 
-    Graph (int arg_nodes) {
-        nodes = arg_nodes;
-
-        mGraph = new ArrayList<>(nodes);
-        for (int i=0; i<nodes; i++)
-            mGraph.add(new ArrayList<>());
-
-        mRules = new ArrayList<>(nodes);
-        for (int i=0; i<nodes; i++)
-            mRules.add(new ArrayList<>());
-
-    }
-
-    Graph() {
+    public Graph() {
         mGraph = new ArrayList<>();
         mRules = new ArrayList<>();
         mUnfinishedVertexes = new ArrayList<>();
@@ -58,55 +111,18 @@ class Graph {
         mGraph.addAll(rhs.mGraph);
         mRules.addAll(rhs.mRules);
 
-        mGraph.get(mUnfinishedVertexes.get(list.size() - 1)).add(rhs.mBeginVertex);
-        mRules.get(mUnfinishedVertexes.lastKey()).add('\0');
-        mGraph.get(rhs.mEndVertex).add(mUnfinishedVertexes.lastEntry().getValue());
-        mRules.get(rhs.mEndVertex).add('\0');
+        // mUnfinishedVertexes[][]
+        mGraph.get(mUnfinishedVertexes.get(mUnfinishedVertexes.size() - 1).get(0)).add(rhs.mBeginVertex);
+        mRules.get(mUnfinishedVertexes.get(mUnfinishedVertexes.size() - 1).get(0)).add('E');
+        mGraph.get(rhs.mEndVertex).add(mUnfinishedVertexes.get(mUnfinishedVertexes.size() - 1).get(1));
+        mRules.get(rhs.mEndVertex).add('E');
 
-        mUnfinishedVertexes.remove(mUnfinishedVertexes.lastKey());
+        mUnfinishedVertexes.remove(mUnfinishedVertexes.get(mUnfinishedVertexes.size() - 1));
 
         return this;
     }
 
-//    void CreateGraphOperators(List<List<Integer>> adjlist) {
-//        graphOperators = new HashMap<>();
-//        graphOperators.put('+', createPlusOperatorGraph(adjlist));
-//        graphOperators.put('*', createStarOperatorGraph(adjlist));
-//    }
-
-     void createPlusOperatorGraph(List<List<Integer>> adjlist) {
-        System.out.println('+');
-        //return adjlist;
-    }
-
-    void createStarOperatorGraph(List<List<Integer>> adjlist) {
-        System.out.println('+');
-    }
-    void AddEdge (int src, int dst) {
-        adjlist.get(src).add(dst);
-        //adjlist.get(dst).add(src);
-    }
-
-    void Iterate (int src) {
-        //System.out.print("\n" + src + " : ");
-        for (Integer adj_node : adjlist.get(src)) {
-            System.out.print(adj_node);
-        }
-    }
-
-    void IterateChar (int src) {
-        //System.out.print("\n" + src + " : ");
-        for (int adj_node : adjlist.get(src)) {
-            System.out.print("[label=\"");
-            if (adj_node > 32 && adj_node < 127)
-                System.out.print((char) adj_node );
-            else
-                System.out.print(adj_node);
-            System.out.print("\"]\n");
-        }
-    }
-
-    void toDot() {
+    public void toDot() {
         try {
             File file = new File("src/main/resources/graph.dot");
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
@@ -125,29 +141,5 @@ class Graph {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main (String[] args) {
-
-        Graph g = new Graph(3);
-        g.AddEdge(0,2 );
-        g.AddEdge(1,2 );
-        g.AddEdge(2,1 );
-
-
-        Graph c = new Graph(3);
-        c.AddEdge(0,'a' );
-        c.AddEdge(1,'a' );
-        c.AddEdge(2,'b' );
-
-
-        System.out.println("digraph StateMachine {");
-        for (int i = 0; i < 3; i++) {
-            System.out.print(i);
-            System.out.print(" -> ");
-            g.Iterate(i);
-            c.IterateChar(i);
-        }
-
     }
 }

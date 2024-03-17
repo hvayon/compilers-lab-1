@@ -7,9 +7,8 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        //String expression = "(a|b)*.(c|d)+";
 
-        String exp = "a+";
+        String exp = "(a|b)*.(c|d)+";
 
         RPN RPN = new RPN(exp);
 
@@ -18,6 +17,7 @@ public class Main {
 
         GraphCreator graphCreator = new GraphCreator();
 
-        graphCreator.createGraph(RPN.postfixExpr);
+        graphCreator.createGraph(RPN.postfixExpr).toDot();
+
         }
     }
