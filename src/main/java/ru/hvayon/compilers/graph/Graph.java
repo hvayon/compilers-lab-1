@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 public class Graph {
 
@@ -15,6 +16,10 @@ public class Graph {
 
     /* индекс конечной вершины */
     int mEndVertex;
+
+    ArrayList<Object> mBeginVertexes;
+    ArrayList<Integer> mEndVertexes;
+
 
     public void setNodes(int nodes) {
         this.nodes = nodes;
@@ -93,6 +98,8 @@ public class Graph {
         mGraph = new ArrayList<>();
         mRules = new ArrayList<>();
         mUnfinishedVertexes = new ArrayList<>();
+        mBeginVertexes = new ArrayList<>();
+        mEndVertexes = new ArrayList<>();
     }
 
     public Graph insertGraph(Graph rhs) {
@@ -118,6 +125,148 @@ public class Graph {
         mRules.get(rhs.mEndVertex).add('E');
 
         mUnfinishedVertexes.remove(mUnfinishedVertexes.get(mUnfinishedVertexes.size() - 1));
+
+        return this;
+    }
+
+    public Pair findEdges(int vertexElem, List<Integer> vertexesInd ) {
+
+        Pair res = new Pair();
+
+        // ребра графа
+        ArrayList<Integer> edges = mGraph.get(vertexElem);
+
+        for (int i = 0; i < edges.size(); i++) {
+            // если не равно E
+            if (!mRules.get(vertexElem).get(i).equals('E')) {
+                res.getResIntList().add(vertexesInd.indexOf(edges.get(i)));
+                res.getResCharList().add(mRules.get(vertexElem).get(i));
+            } else {
+                if (edges.get(i).equals(mEndVertex)) {
+                    this.mEndVertexes.add(vertexesInd.indexOf(vertexElem));
+                }
+                Pair tmp = findEdges(edges.get(i), vertexesInd);
+                res.getResIntList().addAll(tmp.resIntList);
+                res.getResCharList().addAll(tmp.resCharList);
+            }
+        }
+        return res;
+    }
+
+    public Graph deleteEps() {
+        Graph graph = new Graph();
+
+        List<Integer> vertexesInd = new ArrayList<>();
+        {
+            // находим все вершины, у которых хотя бы одно не E ребро
+            vertexesInd.add(mBeginVertex);
+            for (int i = 0; i < mGraph.size(); i++) {
+                for (int j = 0; j < mGraph.get(i).size(); j++) {
+                    if (mRules.get(i).get(j) != 'E') {
+                        vertexesInd.add(mGraph.get(i).get(j));
+                    }
+                }
+            }
+        }
+
+        Function<Integer, Integer> indexTrasform = (oldIdx) -> vertexesInd.indexOf(oldIdx);
+
+        for (int vertexElem : vertexesInd) {
+            // для каждой из вершин находим все новые рёбра
+            Pair newEdges = findEdges(vertexElem, vertexesInd);
+            graph.mGraph.add(newEdges.getResIntList());
+            graph.mRules.add(newEdges.getResCharList());
+            graph.mBeginVertex = indexTrasform.apply(mBeginVertex);
+        }
+        return graph;
+    }
+
+    public Graph Determine() {
+        List<Character> alphabet = new ArrayList<>();
+        for (List<Character> row : mRules) {
+            for (Character elem : row) {
+                alphabet.add(elem);
+            }
+        }
+
+        if (mBeginVertexes.isEmpty()) {
+            mBeginVertexes = new ArrayList<>();
+            mBeginVertexes.add(mBeginVertex);
+        }
+
+        ArrayList<ArrayList<Integer>> vertexesUnions = new ArrayList<>();
+        vertexesUnions.add(new ArrayList(mBeginVertexes));
+        ArrayList<ArrayList<Integer>> newGraph = new ArrayList<>();
+        newGraph.add(new ArrayList<>());
+        ArrayList<ArrayList<Character>> newRules = new ArrayList<>();
+        newRules.add(new ArrayList<>());
+
+        boolean end = false;
+        int vertexesUnionsIdx = 0;
+        while (vertexesUnionsIdx < vertexesUnions.size()) {
+            end = true;
+
+            List<ArrayList<Integer>> newVertexesUnions = new ArrayList<>();
+            for (int vertex : vertexesUnions.get(vertexesUnionsIdx)) {
+                for (char symbol : alphabet) {
+                    ArrayList<Integer> newVertexesUnion = new ArrayList<>();
+
+                    for (int i = 0; i < mRules.get(vertex).size(); i++) {
+                        if (mRules.get(vertex).get(i) == symbol) {
+                            newVertexesUnion.add(mGraph.get(vertex).get(i));
+                        }
+                    }
+
+                    if (!newVertexesUnion.isEmpty()) {
+                        int idx1 = -1;
+                        int idx2 = -1;
+
+                        for (int j = 0; j < vertexesUnions.size(); j++) {
+                            if (vertexesUnions.get(j).equals(newVertexesUnion)) {
+                                idx1 = j;
+                                break;
+                            }
+                        }
+
+                        for (int k = 0; k < newVertexesUnions.size(); k++) {
+                            if (newVertexesUnions.get(k).equals(newVertexesUnion)) {
+                                idx2 = k;
+                                break;
+                            }
+                        }
+
+                        if (idx1 != -1) {
+                            newGraph.get(vertexesUnionsIdx).add(idx1);
+                            newRules.get(vertexesUnionsIdx).add(symbol);
+                        } else {
+                            if (idx2 == -1) {
+                                newVertexesUnions.add(newVertexesUnion);
+                            }
+                            newGraph.get(vertexesUnionsIdx).add(idx1 + idx2);
+                            newRules.get(vertexesUnionsIdx).add(symbol);
+                            end = false;
+                        }
+                    }
+                }
+            }
+            vertexesUnions.addAll(newVertexesUnions);
+            newGraph.add(new ArrayList<>());
+            newRules.add(new ArrayList<>());
+            vertexesUnionsIdx++;
+        }
+
+        Graph res = new Graph();
+        res.mBeginVertexes = new ArrayList<>();
+        res.mBeginVertexes.add(0);
+        res.mGraph = newGraph;
+        res.mRules = newRules;
+        for (int i = 0; i < vertexesUnions.size(); i++) {
+            for (int vertex : vertexesUnions.get(i)) {
+                if (mEndVertexes.contains(vertex)) {
+                    res.mEndVertexes.add(i);
+                }
+            }
+        }
 
         return this;
     }

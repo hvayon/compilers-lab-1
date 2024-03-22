@@ -6,9 +6,9 @@ import ru.hvayon.compilers.graph.GraphCreator;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 
-        String exp = "(a|b)*.(c|d)+";
+        String exp = "(a|b)+";
 
         RPN RPN = new RPN(exp);
 
@@ -17,7 +17,8 @@ public class Main {
 
         GraphCreator graphCreator = new GraphCreator();
 
-        graphCreator.createGraph(RPN.postfixExpr).toDot();
+        //graphCreator.createGraph(RPN.postfixExpr).toDot();
+        graphCreator.createGraph(RPN.postfixExpr).deleteEps().Determine().toDot();
 
         }
     }
