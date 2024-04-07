@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Pair {
     ArrayList<Integer> resIntList;
     ArrayList<Character> resCharList;
+    boolean isEnd = false;
 
     public Pair() {
         resIntList = new ArrayList<>();

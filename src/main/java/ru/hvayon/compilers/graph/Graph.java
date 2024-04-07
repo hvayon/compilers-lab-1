@@ -1,97 +1,33 @@
 package ru.hvayon.compilers.graph;
 
+import lombok.Data;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
+
+@Data
 public class Graph {
 
     int nodes;
-
     /* индекс начальной вершины */
     int mBeginVertex;
 
     /* индекс конечной вершины */
     int mEndVertex;
-
-    ArrayList<Object> mBeginVertexes;
+    ArrayList<Integer> mBeginVertexes;
     ArrayList<Integer> mEndVertexes;
-
-
-    public void setNodes(int nodes) {
-        this.nodes = nodes;
-    }
-
-    public void setmBeginVertex(int mBeginVertex) {
-        this.mBeginVertex = mBeginVertex;
-    }
-
-    public void setmEndVertex(int mEndVertex) {
-        this.mEndVertex = mEndVertex;
-    }
-
-    public void setAdjlist(List<List<Integer>> adjlist) {
-        this.adjlist = adjlist;
-    }
-
-    public void setmGraph(ArrayList<ArrayList<Integer>> mGraph) {
-        this.mGraph = mGraph;
-    }
-
-    public void setmRules(ArrayList<ArrayList<Character>> mRules) {
-        this.mRules = mRules;
-    }
-
-    public void setmUnfinishedVertexes(ArrayList<ArrayList<Integer>> mUnfinishedVertexes) {
-        this.mUnfinishedVertexes = mUnfinishedVertexes;
-    }
-
-    public void setGraphOperators(HashMap<Character, Graph> graphOperators) {
-        this.graphOperators = graphOperators;
-    }
-
-    public int getNodes() {
-        return nodes;
-    }
-
-    public int getmBeginVertex() {
-        return mBeginVertex;
-    }
-
-    public int getmEndVertex() {
-        return mEndVertex;
-    }
-
-    public List<List<Integer>> getAdjlist() {
-        return adjlist;
-    }
-
-    public ArrayList<ArrayList<Integer>> getmGraph() {
-        return mGraph;
-    }
-
-    public ArrayList<ArrayList<Character>> getmRules() {
-        return mRules;
-    }
-
-    public ArrayList<ArrayList<Integer>> getmUnfinishedVertexes() {
-        return mUnfinishedVertexes;
-    }
-
-    public HashMap<Character, Graph> getGraphOperators() {
-        return graphOperators;
-    }
-
-    List<List<Integer>> adjlist;
-
     ArrayList<ArrayList<Integer>> mGraph;
     ArrayList<ArrayList<Character>> mRules;
-
+    // индексы вершин с конечными состояниями
     ArrayList<ArrayList<Integer>> mUnfinishedVertexes;
-
     HashMap<Character,Graph> graphOperators;
 
     public Graph() {
@@ -102,6 +38,24 @@ public class Graph {
         mEndVertexes = new ArrayList<>();
     }
 
+//    public Character getNextStateSymbol()
+//        return false;
+//    }
+//    private static Set<Set<State>> splitStates(Set<State> states) {
+//        Set<State> newStates = new HashSet<>();
+//        for (String c : alphabet) {
+//            for (State s : states) {
+//                // найти состояние, в которое мы перейдем из s по символу c
+//                // если оно находится в данной группе, то добавляем его в новый набор
+//                if (states.contains(s.getNextStateBySymbol(c))) {
+//                    newStates.add(s);
+//                }
+//            }
+//        }
+//        // удаляем все элементы из набора states, которые есть в newStates
+//        states.removeAll(newStates);
+//        return Stream.of(states, newStates).collect(Collectors.toCollection(HashSet::new));
+//    }
     public Graph insertGraph(Graph rhs) {
         assert(mUnfinishedVertexes.size() >= 1);
         assert(rhs.mUnfinishedVertexes.size() == 0);
@@ -142,12 +96,13 @@ public class Graph {
                 res.getResIntList().add(vertexesInd.indexOf(edges.get(i)));
                 res.getResCharList().add(mRules.get(vertexElem).get(i));
             } else {
-                if (edges.get(i).equals(mEndVertex)) {
-                    this.mEndVertexes.add(vertexesInd.indexOf(vertexElem));
-                }
                 Pair tmp = findEdges(edges.get(i), vertexesInd);
+                res.isEnd = tmp.isEnd;
                 res.getResIntList().addAll(tmp.resIntList);
                 res.getResCharList().addAll(tmp.resCharList);
+                if (edges.get(i).equals(mEndVertex)) {
+                    res.isEnd = true;
+                }
             }
         }
         return res;
@@ -177,12 +132,16 @@ public class Graph {
             graph.mGraph.add(newEdges.getResIntList());
             graph.mRules.add(newEdges.getResCharList());
             graph.mBeginVertex = indexTrasform.apply(mBeginVertex);
+            if (newEdges.isEnd) {
+                graph.mEndVertexes.add(vertexesInd.indexOf(vertexElem));
+            }
         }
         return graph;
     }
 
     public Graph Determine() {
-        List<Character> alphabet = new ArrayList<>();
+
+        Set<Character> alphabet = new HashSet<>();
         for (List<Character> row : mRules) {
             for (Character elem : row) {
                 alphabet.add(elem);
@@ -194,10 +153,12 @@ public class Graph {
             mBeginVertexes.add(mBeginVertex);
         }
 
-        ArrayList<ArrayList<Integer>> vertexesUnions = new ArrayList<>();
-        vertexesUnions.add(new ArrayList(mBeginVertexes));
+        ArrayList<Set<Integer>> vertexesUnions = new ArrayList<>();
+        vertexesUnions.add(new HashSet(mBeginVertexes));
+
         ArrayList<ArrayList<Integer>> newGraph = new ArrayList<>();
         newGraph.add(new ArrayList<>());
+
         ArrayList<ArrayList<Character>> newRules = new ArrayList<>();
         newRules.add(new ArrayList<>());
 
@@ -206,10 +167,13 @@ public class Graph {
         while (vertexesUnionsIdx < vertexesUnions.size()) {
             end = true;
 
-            List<ArrayList<Integer>> newVertexesUnions = new ArrayList<>();
-            for (int vertex : vertexesUnions.get(vertexesUnionsIdx)) {
-                for (char symbol : alphabet) {
-                    ArrayList<Integer> newVertexesUnion = new ArrayList<>();
+            List<Set<Integer>> newVertexesUnions = new ArrayList<>();
+
+
+            for (char symbol : alphabet) {
+                Set<Integer> newVertexesUnion = new HashSet<>();
+                for (int vertex : vertexesUnions.get(vertexesUnionsIdx)) {
+
 
                     for (int i = 0; i < mRules.get(vertex).size(); i++) {
                         if (mRules.get(vertex).get(i) == symbol) {
@@ -217,47 +181,44 @@ public class Graph {
                         }
                     }
 
-                    if (!newVertexesUnion.isEmpty()) {
-                        int idx1 = -1;
-                        int idx2 = -1;
 
-                        for (int j = 0; j < vertexesUnions.size(); j++) {
-                            if (vertexesUnions.get(j).equals(newVertexesUnion)) {
-                                idx1 = j;
-                                break;
-                            }
-                        }
+                }
 
-                        for (int k = 0; k < newVertexesUnions.size(); k++) {
-                            if (newVertexesUnions.get(k).equals(newVertexesUnion)) {
-                                idx2 = k;
-                                break;
-                            }
-                        }
+                if (!newVertexesUnion.isEmpty()) {
+                    int size1;
+                    int size2;
 
-                        if (idx1 != -1) {
-                            newGraph.get(vertexesUnionsIdx).add(idx1);
-                            newRules.get(vertexesUnionsIdx).add(symbol);
-                        } else {
-                            if (idx2 == -1) {
-                                newVertexesUnions.add(newVertexesUnion);
-                            }
-                            newGraph.get(vertexesUnionsIdx).add(idx1 + idx2);
-                            newRules.get(vertexesUnionsIdx).add(symbol);
-                            end = false;
+                    // возвращаем итератор элемента newVertexesUnion в vertexesUnions
+                    int iter1 = vertexesUnions.indexOf(newVertexesUnion);
+                    // если найден
+                    if (iter1 != -1) {
+                        newGraph.get(vertexesUnionsIdx).add(iter1);
+                        newRules.get(vertexesUnionsIdx).add(symbol);
+                    } else {
+                        int iter2 = newVertexesUnions.indexOf(newVertexesUnion);
+                        newGraph.get(vertexesUnionsIdx).add(
+                                vertexesUnions.size()
+                                        + ((iter2 == -1) ? newVertexesUnions.size() : iter2));
+                        newRules.get(vertexesUnionsIdx).add(symbol);
+                        if (iter2 == -1) {
+                            newVertexesUnions.add(newVertexesUnion);
                         }
+                        end = false;
                     }
                 }
             }
+            // добавляем новые элементы в конец массива
             vertexesUnions.addAll(newVertexesUnions);
             newGraph.add(new ArrayList<>());
             newRules.add(new ArrayList<>());
-            vertexesUnionsIdx++;
+            ++vertexesUnionsIdx;
         }
 
         Graph res = new Graph();
         res.mBeginVertexes = new ArrayList<>();
         res.mBeginVertexes.add(0);
+        res.mBeginVertex = 0;
+
         res.mGraph = newGraph;
         res.mRules = newRules;
         for (int i = 0; i < vertexesUnions.size(); i++) {
@@ -267,28 +228,46 @@ public class Graph {
                 }
             }
         }
-
-        return this;
+        return res;
     }
 
-    public void toDot() {
+    public boolean checkIfStringRegex(String str) {
+            int curState = this.mBeginVertex;
+            for (int i = 0; i < str.length(); i++) {
+                Character symbol = str.charAt(i);
+                if (this.mRules.get(curState).indexOf(symbol) == -1) {
+                    return false;
+                }
+                curState = this.mGraph.get(curState).get(this.mRules.get(curState).indexOf(symbol));
+            }
+            return this.mEndVertexes.contains(curState);
+    }
+
+    public String toDot() {
+        String res = "";
         try {
             File file = new File("src/main/resources/graph.dot");
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
+
             System.out.println("digraph G {");
             bw.write("digraph G {\n");
+            res = "digraph G {\n";
             for (int i = 0; i < mGraph.size(); i++) {
                 for (int j = 0; j < mGraph.get(i).size(); j++) {
                     System.out.print(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n");
                     bw.write(i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n");
+                    res += i + " -> " + mGraph.get(i).get(j) + "[label=\"" + mRules.get(i).get(j) + "\"]\n";
                 }
             }
             System.out.println("}");
-            bw.write("}\n");
+            bw.write("}");
+            res += "}";
+
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return res;
     }
 }
